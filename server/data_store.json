@@ -1,0 +1,219 @@
+{
+  "workflows": {
+    "template-gmail-to-drive": {
+      "id": "template-gmail-to-drive",
+      "name": "Save Email Invoices to Google Drive",
+      "prompt": "When I receive an email with an invoice, extract the attachment and save it to Google Drive",
+      "active": false,
+      "trigger": {
+        "type": "event",
+        "platform": "gmail",
+        "config": {
+          "folder": "INBOX",
+          "subjectFilter": "invoice"
+        }
+      },
+      "steps": [
+        {
+          "id": "step-1-ai-extract",
+          "platform": "openai",
+          "action": "analyze_invoice",
+          "config": {
+            "prompt": "Analyze this email and return a summary of the invoice"
+          },
+          "mapping": {
+            "emailText": "{{trigger.body}}"
+          }
+        },
+        {
+          "id": "step-2-save-drive",
+          "platform": "google_drive",
+          "action": "save_file",
+          "config": {
+            "folderName": "Invoices"
+          },
+          "mapping": {
+            "fileName": "invoice_{{trigger.id}}.pdf",
+            "fileContent": "{{trigger.attachment}}"
+          }
+        }
+      ],
+      "createdAt": "2026-07-14T10:50:54.797Z",
+      "updatedAt": "2026-07-14T10:50:54.797Z"
+    },
+    "template-stripe-to-slack": {
+      "id": "template-stripe-to-slack",
+      "name": "Notify Slack of New Stripe Payments",
+      "prompt": "Notify the team on Slack whenever a customer makes a payment on Stripe",
+      "active": false,
+      "trigger": {
+        "type": "webhook",
+        "platform": "stripe",
+        "config": {
+          "event": "charge.succeeded"
+        }
+      },
+      "steps": [
+        {
+          "id": "step-1-notify-slack",
+          "platform": "slack",
+          "action": "send_message",
+          "config": {
+            "channel": "sales-alerts"
+          },
+          "mapping": {
+            "text": "🎉 New sale! Customer {{trigger.customer_name}} just paid {{trigger.amount_formatted}}."
+          }
+        }
+      ],
+      "createdAt": "2026-07-14T10:50:54.797Z",
+      "updatedAt": "2026-07-14T10:50:54.797Z"
+    },
+    "wf-h2m2irixw": {
+      "id": "wf-h2m2irixw",
+      "name": "Stripe to Google drive & Slack",
+      "prompt": "When I get a customer payment on Stripe, notify the sales team on Slack and save receipt to Google Drive",
+      "active": false,
+      "trigger": {
+        "type": "webhook",
+        "platform": "stripe",
+        "config": {
+          "event": "charge.succeeded"
+        }
+      },
+      "steps": [
+        {
+          "id": "step-1-drive",
+          "platform": "google_drive",
+          "action": "save_file",
+          "config": {
+            "folderName": "Automation Files"
+          },
+          "mapping": {
+            "fileName": "file_{{trigger.id}}.txt",
+            "fileContent": "{{trigger.body}}"
+          }
+        },
+        {
+          "id": "step-2-slack",
+          "platform": "slack",
+          "action": "send_message",
+          "config": {
+            "channel": "general"
+          },
+          "mapping": {
+            "text": "🎉 Stripe payment received from {{trigger.customer_name}}! Amount: {{trigger.amount_formatted}}."
+          }
+        }
+      ],
+      "createdAt": "2026-07-14T15:14:03.925Z",
+      "updatedAt": "2026-07-14T15:14:03.925Z"
+    }
+  },
+  "connections": {},
+  "executions": [
+    {
+      "id": "run-j9rstq9fs",
+      "workflowId": "wf-h2m2irixw",
+      "workflowName": "Stripe to Google drive & Slack",
+      "status": "success",
+      "triggerPayload": {
+        "id": "40996",
+        "subject": "Invoice for your subscription - Acme Corp",
+        "body": "Hi Team, here is our monthly invoice total of $450.00 for Acme services. It is currently unpaid. Please process.",
+        "attachment": "PDF_INVOICE_ATTACHMENT_BYTES_128A",
+        "customer_name": "Jane Doe",
+        "amount": 45000,
+        "amount_formatted": "$450.00",
+        "currency": "USD"
+      },
+      "stepsResults": [
+        {
+          "stepId": "step-1-drive",
+          "name": "google drive: save file",
+          "status": "success",
+          "inputUsed": {
+            "folderName": "Automation Files",
+            "fileName": "file_40996.txt",
+            "fileContent": "Hi Team, here is our monthly invoice total of $450.00 for Acme services. It is currently unpaid. Please process."
+          },
+          "output": {
+            "success": true,
+            "fileId": "drive-simulated-id-78219",
+            "fileName": "file_40996.txt",
+            "folder": "Automation Files",
+            "path": "/My Drive/Automation Files/file_40996.txt",
+            "url": "https://drive.google.com/file/d/drive-simulated-id-78219/view"
+          }
+        },
+        {
+          "stepId": "step-2-slack",
+          "name": "slack: send message",
+          "status": "success",
+          "inputUsed": {
+            "channel": "general",
+            "text": "🎉 Stripe payment received from Jane Doe! Amount: $450.00."
+          },
+          "output": {
+            "success": true,
+            "channel": "general",
+            "message": "[Simulated Slack Notification] Sent message to #general: \"🎉 Stripe payment received from Jane Doe! Amount: $450.00.\""
+          }
+        }
+      ],
+      "startedAt": "2026-07-14T15:14:11.099Z",
+      "completedAt": "2026-07-14T15:14:12.004Z",
+      "durationMs": 905
+    },
+    {
+      "id": "run-3w4s5ionc",
+      "workflowId": "template-gmail-to-drive",
+      "workflowName": "Save Email Invoices to Google Drive",
+      "status": "success",
+      "triggerPayload": {
+        "id": "test-run-99",
+        "body": "Invoice details Acme"
+      },
+      "stepsResults": [
+        {
+          "stepId": "step-1-ai-extract",
+          "name": "openai: analyze invoice",
+          "status": "success",
+          "inputUsed": {
+            "prompt": "Analyze this email and return a summary of the invoice",
+            "emailText": "Invoice details Acme"
+          },
+          "output": {
+            "text": "[Simulated OpenAI Assistant Response]\nBased on prompt: \"Analyze this email and return a summary of the invoice\", here is the extraction:\nExtracted Invoice details: total $450.00, company Acme Corp, due date 2026-08-12.",
+            "extractedAmount": 450,
+            "currency": "USD",
+            "status": "paid",
+            "company": "Acme Corp",
+            "dueDate": "2026-08-12"
+          }
+        },
+        {
+          "stepId": "step-2-save-drive",
+          "name": "google drive: save file",
+          "status": "success",
+          "inputUsed": {
+            "folderName": "Invoices",
+            "fileName": "invoice_test-run-99.pdf",
+            "fileContent": ""
+          },
+          "output": {
+            "success": true,
+            "fileId": "drive-simulated-id-78219",
+            "fileName": "invoice_test-run-99.pdf",
+            "folder": "Invoices",
+            "path": "/My Drive/Invoices/invoice_test-run-99.pdf",
+            "url": "https://drive.google.com/file/d/drive-simulated-id-78219/view"
+          }
+        }
+      ],
+      "startedAt": "2026-07-14T10:50:55.242Z",
+      "completedAt": "2026-07-14T10:50:56.346Z",
+      "durationMs": 1104
+    }
+  ]
+}

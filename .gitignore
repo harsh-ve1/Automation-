@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.env
+*.log
+.DS_Store
+.cache/
+.parcel-cache/
+server/node_modules/
+server/dist/
+client/node_modules/
+client/dist/
